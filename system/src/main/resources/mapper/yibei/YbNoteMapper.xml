@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yibei.yb.mapper.YbNoteMapper">
+
+    <resultMap type="com.yibei.yb.domain.YbNote" id="YbNoteResult">
+        <result property="id" column="id"/>
+        <result property="teachingMaterialId" column="teaching_material_id"/>
+        <result property="entryId" column="entry_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="content" column="content"/>
+        <result property="createTime" column="create_time"/>
+        <result property="isDeleted" column="is_deleted"/>
+    </resultMap>
+
+
+</mapper>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yibei.yb.mapper.YbSigninMapper">
+
+    <resultMap type="com.yibei.yb.domain.YbSignin" id="YbSigninResult">
+        <result property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="dateDay" column="date_day"/>
+        <result property="continuityDay" column="continuity_day"/>
+        <result property="createTime" column="create_time"/>
+        <result property="isDeleted" column="is_deleted"/>
+    </resultMap>
+    <select id="getReportSignin" resultType="com.yibei.yb.domain.clientVo.ReportSigninInfoVo">
+        SELECT
+            a.days date,
+            abs(RIGHT ( a.days, 2 )) DAY,
+            CASE WHEN b.id IS NOT NULL THEN 1 ELSE 0 END is_signin,
+            CASE WHEN c.days IS NOT NULL THEN c.min ELSE 0 END study_min
+        FROM
+        (
+            SELECT
+                ADDDATE( y.FIRST, x.DAY - 1 ) AS days
+            FROM
+                day_table x,
+                (SELECT #{monthDay} - INTERVAL DAY ( #{monthDay} ) - 1 DAY AS FIRST, DAY ( LAST_DAY( #{monthDay} )) AS last ) y
+            WHERE
+                x.DAY &lt;= y.last
+        ) a
+        LEFT JOIN
+            yb_signin b
+            ON a.days = b.date_day
+            AND b.is_deleted = 0
+            AND b.user_id = #{userId}
+        LEFT JOIN
+            ( SELECT date_day days, sum( min ) min FROM yb_study_time_log WHERE is_deleted = 0 AND user_id = #{userId} GROUP BY date_day ) c
+            ON a.days = c.days
+        ORDER BY
+            a.days
+    </select>
+
+
+</mapper>

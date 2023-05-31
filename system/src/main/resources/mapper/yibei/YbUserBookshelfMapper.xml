@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yibei.yb.mapper.YbUserBookshelfMapper">
+
+    <resultMap type="com.yibei.yb.domain.YbUserBookshelf" id="YbUserBookshelfResult">
+        <result property="id" column="id"/>
+        <result property="contentType" column="content_type"/>
+        <result property="contentId" column="content_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="lastOpenTime" column="last_open_time"/>
+        <result property="createTime" column="create_time"/>
+        <result property="isDeleted" column="is_deleted"/>
+    </resultMap>
+    <select id="getListInfo" resultType="com.yibei.yb.domain.clientVo.YbUserBookshelfInfoVo">
+        SELECT
+            a.id bookshelf_id,
+            a.content_type,
+            b.id,
+            b.title,
+            b.img_url,
+            b.`describe`
+        FROM
+            yb_user_bookshelf a
+                LEFT JOIN (
+                SELECT
+                    '1' content_type,
+                    id,
+                    title,
+                    img_url,
+                    `describe`
+                FROM
+                    yb_teaching_material
+                WHERE
+                    is_deleted = 0
+                  AND STATUS = 1 UNION ALL
+                SELECT
+                    '2' content_type,
+                    id,
+                    title,
+                    img_url,
+                    `describe`
+                FROM
+                    yb_question_bank
+                WHERE
+                    is_deleted = 0
+                  AND STATUS = 1
+            ) b ON a.content_type = b.content_type
+                AND a.content_id = b.id
+        WHERE
+            a.is_deleted = 0
+          AND user_id = #{userId}
+          AND b.id IS NOT NULL
+        ORDER BY
+            last_open_time DESC
+    </select>
+
+
+</mapper>

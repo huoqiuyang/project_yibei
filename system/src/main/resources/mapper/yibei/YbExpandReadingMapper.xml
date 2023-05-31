@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yibei.yb.mapper.YbExpandReadingMapper">
+
+    <resultMap type="com.yibei.yb.domain.YbExpandReading" id="YbExpandReadingResult">
+        <result property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="describe" column="describe"/>
+        <result property="label" column="label"/>
+        <result property="imgUrl" column="img_url"/>
+        <result property="audioFrequency" column="audio_frequency"/>
+        <result property="content" column="content"/>
+        <result property="sort" column="sort"/>
+        <result property="status" column="status"/>
+        <result property="createTime" column="create_time"/>
+        <result property="isDeleted" column="is_deleted"/>
+    </resultMap>
+
+
+</mapper>

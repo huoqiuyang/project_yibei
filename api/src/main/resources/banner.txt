@@ -1,0 +1,2 @@
+Application Version: ${yibei.version}
+Spring Boot Version: ${spring-boot.version}

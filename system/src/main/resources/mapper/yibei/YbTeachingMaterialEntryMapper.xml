@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yibei.yb.mapper.YbTeachingMaterialEntryMapper">
+
+    <resultMap type="com.yibei.yb.domain.YbTeachingMaterialEntry" id="YbTeachingMaterialEntryResult">
+        <result property="id" column="id"/>
+        <result property="teachingMaterialId" column="teaching_material_id"/>
+        <result property="title" column="title"/>
+        <result property="label" column="label"/>
+        <result property="imgUrl" column="img_url"/>
+        <result property="importance" column="importance"/>
+        <result property="audioFrequency" column="audio_frequency"/>
+        <result property="content" column="content"/>
+        <result property="keyWord" column="key_word"/>
+        <result property="relatedLinks" column="related_links"/>
+        <result property="sort" column="sort"/>
+        <result property="status" column="status"/>
+        <result property="createTime" column="create_time"/>
+        <result property="isDeleted" column="is_deleted"/>
+    </resultMap>
+
+    <select id="getCollectionList" resultType="com.yibei.yb.domain.clientVo.YbTmeCatalogueInfoVo">
+        SELECT
+            id,
+            title
+        FROM
+            yb_teaching_material_entry
+        WHERE
+                id IN (
+                SELECT
+                    parent_id
+                FROM
+                    yb_teaching_material_entry
+                WHERE
+                    is_deleted = 0
+                  AND STATUS = 1
+                  AND id IN ( SELECT entry_id FROM yb_user_collection WHERE is_deleted = 0 AND user_id = #{userId} AND content_type = 1 AND content_id = #{teachingMaterialId} )
+            )
+        ORDER BY
+            sort ASC
+    </select>
+    <select id="getSecondList" resultType="com.yibei.yb.domain.clientVo.YbTmeCatalogueSecondInfoVo">
+        SELECT
+            a.id,
+            a.title,
+            a.label,
+            a.importance,
+            CASE WHEN b.entry_id IS NOT NULL THEN 1 ELSE 0 END type
+        FROM
+            yb_teaching_material_entry a
+                LEFT JOIN ( SELECT entry_id FROM yb_user_collection WHERE is_deleted = 0 AND user_id = #{userId} AND content_type = 1 ) b ON a.id = b.entry_id
+        WHERE
+            a.parent_id = #{teachingMaterialEntryId}
+          AND a.is_deleted = 0
+          AND a.STATUS = 1
+            <if test="isCollection != null and isCollection != 0">
+                AND b.entry_id IS NOT NULL
+            </if>
+        ORDER BY
+            a.sort ASC
+    </select>
+    <select id="getEntryLog" resultType="com.yibei.yb.domain.YbTeachingMaterialEntry">
+        SELECT
+            *
+        FROM
+            (
+                SELECT
+                    b.*,
+                    a.last_time
+                FROM
+                    yb_teaching_material_log a
+                        LEFT JOIN yb_teaching_material_entry b ON a.teaching_material_entry_id = b.id
+                        AND b.is_deleted = 0
+                        AND b.`status` = 1
+                WHERE
+                    a.is_deleted = 0
+                  AND a.learning_type = #{learningType}
+                  AND a.teaching_material_id = #{teachingMaterialId}
+                  AND a.user_id = #{userId}
+            ) z
+        WHERE
+            id IS NOT NULL
+        ORDER BY
+            last_time DESC
+            LIMIT 1
+    </select>
+    <select id="getEntryReadInfo" resultType="com.yibei.yb.domain.clientVo.YbTeachingMaterialEntryReadInfoVo">
+        select aa.*,bb.id last_id,bb.title last_title,cc.id next_id,cc.title next_title from (
+             SELECT a.*,(@row1:= @row1+1) AS row1,(@row2:= @row1-1) AS row2,(@row3:= @row1+1) AS row3 FROM (
+               select en.id,en.teaching_material_id,en.title,en.label,en.img_url,en.importance,en.audio_frequency,en.content,en.key_word,en.related_links
+               from yb_teaching_material_entry en
+                        left join yb_teaching_material_entry ent
+                                  on en.parent_id=ent.id and ent.is_deleted=0 and ent.`status`=1
+               where en.is_deleted=0 and en.`status`=1 and en.parent_id!=0 and en.teaching_material_id=#{teachingMaterialId}
+               order by ent.sort asc,ent.create_time desc,en.sort asc,en.create_time desc
+            ) a,(SELECT @row1:=0) b
+        ) aa
+        left join
+        (SELECT a.*,(@row4:= @row4+1) AS row4 FROM (
+                select en.id,en.title
+                from yb_teaching_material_entry en
+                         left join yb_teaching_material_entry ent
+                                   on en.parent_id=ent.id and ent.is_deleted=0 and ent.`status`=1
+                where en.is_deleted=0 and en.`status`=1 and en.parent_id!=0 and en.teaching_material_id=#{teachingMaterialId}
+                order by ent.sort asc,ent.create_time desc,en.sort asc,en.create_time desc
+            ) a,(SELECT @row4:=0) b
+        )bb on aa.row2=bb.row4
+        left join
+        (SELECT a.*,(@row5:= @row5+1) AS row5 FROM (
+                select en.id,en.title
+                from yb_teaching_material_entry en
+                         left join yb_teaching_material_entry ent
+                                   on en.parent_id=ent.id and ent.is_deleted=0 and ent.`status`=1
+                where en.is_deleted=0 and en.`status`=1 and en.parent_id!=0 and en.teaching_material_id=#{teachingMaterialId}
+                order by ent.sort asc,ent.create_time desc,en.sort asc,en.create_time desc
+            ) a,(SELECT @row5:=0) b
+         )cc on aa.row3=cc.row5
+        where 1=1
+        <if test="selectId != null">
+            and aa.id=#{selectId}
+        </if>
+        limit 1
+    </select>
+    <select id="getProportionNum" resultType="java.lang.Long">
+        SELECT
+            count(1) counts
+        FROM
+            yb_teaching_material_log a
+                LEFT JOIN yb_teaching_material_entry b ON a.teaching_material_entry_id = b.id
+                AND b.is_deleted = 0
+                AND b.`status` = 1
+        WHERE
+            a.is_deleted = 0
+          AND a.learning_type = 1
+          AND a.user_id = #{userId}
+          AND a.teaching_material_id = #{teachingMaterialId}
+          AND b.id IS NOT NULL
+    </select>
+    <select id="getIsReciteNum" resultType="java.lang.Long">
+        SELECT
+            count(1) counts
+        FROM
+            yb_user_collection a
+                LEFT JOIN yb_teaching_material_entry b ON a.entry_id = b.id
+                AND b.is_deleted = 0
+                AND b.`status` = 1
+        WHERE
+            a.is_deleted = 0
+          AND a.content_type = 1
+          AND a.content_id = #{teachingMaterialId}
+          AND user_id = #{userId}
+          AND b.id IS NOT NULL
+    </select>
+    <select id="getToDayRecitePlanList"
+            resultType="com.yibei.yb.domain.clientVo.YbTeachingMaterialEntryReciteInfoVo">
+        (select tb.*,log.`status`,log.days,'0' is_curve
+         from(
+                 select aa.*,(@row1:= @row1+1) AS sort from (
+                        select b.teaching_material_id,b.id entry_id,a.user_id,b.title,b.label,b.img_url,b.importance,b.audio_frequency,b.content,b.key_word,b.related_links
+                        from yb_user_collection a
+                        left join yb_teaching_material_entry b
+                        on a.entry_id=b.id and b.`status`=1 and b.is_deleted=0 and b.parent_id!=0
+                        left join yb_teaching_material_entry c
+                        on b.parent_id=c.id and c.`status`=1 and c.is_deleted=0 and c.parent_id=0
+                        where a.is_deleted=0 and a.content_type=1 and a.user_id=#{userId} and a.content_id=#{teachingMaterialId} and b.id is not null and c.id is not null
+                        order by c.sort,b.sort asc,b.create_time desc
+                        )aa,(SELECT @row1:=0) bb
+             )tb
+             left join
+             (select teaching_material_entry_id entry_id,`status`,create_time,
+                     TIMESTAMPDIFF(DAY, left(create_time,10),DATE_FORMAT(NOW(), '%Y-%m-%d'))+1 days
+              from yb_teaching_material_log where is_deleted=0 and learning_type=2 and user_id=#{userId}
+             )log on tb.entry_id=log.entry_id
+         where log.entry_id is null or log.days is null or log.days=1
+         order by tb.sort
+        limit #{studyLimit})
+
+        union all
+
+        (select tb.*,log.`status`,log.days,
+                case when config.days is not null then 1 else 0 end is_curve
+                from(
+                 select aa.*,(@row2:= @row2+1) AS sort from (
+                    select b.teaching_material_id,b.id entry_id,a.user_id,b.title,b.label,b.img_url,b.importance,b.audio_frequency,b.content,b.key_word,b.related_links
+                    from yb_user_collection a
+                    left join yb_teaching_material_entry b
+                    on a.entry_id=b.id and b.`status`=1 and b.is_deleted=0 and b.parent_id!=0
+                    left join yb_teaching_material_entry c
+                    on b.parent_id=c.id and c.`status`=1 and c.is_deleted=0 and c.parent_id=0
+                    where a.is_deleted=0 and a.content_type=1 and a.user_id=#{userId} and a.content_id=#{teachingMaterialId} and b.id is not null and c.id is not null
+                    order by c.sort,b.sort asc,b.create_time desc
+                    )aa,(SELECT @row2:=0) bb
+             )tb
+                 left join
+             (
+                 select teaching_material_entry_id entry_id,`status`,create_time,
+                        TIMESTAMPDIFF(DAY, left(create_time,10),DATE_FORMAT(NOW(), '%Y-%m-%d'))+1 days
+                 from yb_teaching_material_log where is_deleted=0 and learning_type=2 and user_id=#{userId}
+             )log on tb.entry_id=log.entry_id
+                 left join
+             (
+                 select * from curve_config where is_deleted=0
+             )config on log.days=config.days
+         where log.entry_id is not null and log.days>1 and config.days is not null order by is_curve desc
+        limit #{reviewLimit})
+    </select>
+    <select id="getReciteEntryList" resultType="java.lang.Integer">
+        select count(1) counts from yb_user_collection uc left join yb_teaching_material_entry me on uc.entry_id=me.id and me.is_deleted=0 and me.status=1
+        where uc.is_deleted=0 and user_id = #{userId} AND content_type = 1 AND content_id = #{teachingMaterialId} and me.id is not null
+    </select>
+
+
+</mapper>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yibei.system.mapper.UserMapper">
+
+    <resultMap type="com.yibei.system.domain.User" id="UserResult">
+        <result property="id" column="id"/>
+        <result property="email" column="email"/>
+        <result property="password" column="password"/>
+        <result property="userName" column="user_name"/>
+        <result property="nickName" column="nick_name"/>
+        <result property="phone" column="phone"/>
+        <result property="realName" column="real_name"/>
+        <result property="avatar" column="avatar"/>
+        <result property="status" column="status"/>
+        <result property="loginIp" column="login_ip"/>
+        <result property="loginTime" column="login_time"/>
+        <result property="loginCount" column="login_count"/>
+        <result property="weChat" column="we_chat"/>
+        <result property="createTime" column="create_time"/>
+        <result property="isDeleted" column="is_deleted"/>
+    </resultMap>
+
+    <select id="getList" resultType="com.yibei.system.domain.vo.UserVo">
+        SELECT
+            *
+        FROM
+            (
+                SELECT
+                    u.*,
+                    CASE
+                        WHEN v.end_time > #{time} THEN
+                            1 ELSE 0
+                        END vip_status,
+                    v.end_time
+                FROM
+                    USER u
+                        LEFT JOIN ( SELECT DISTINCT user_id, end_time FROM yb_user_vip WHERE `is_deleted` = 0 ) v ON u.id = v.user_id
+                WHERE
+                    u.`is_deleted` = 0
+                ORDER BY
+                    u.create_time DESC
+            ) z
+        WHERE
+            1 = 1
+            <if test="keyword != null and keyword != ''">
+                AND ( `phone` LIKE CONCAT('%',#{keyword},'%') OR `user_name` LIKE CONCAT('%',#{keyword},'%') OR `real_name` LIKE CONCAT('%',#{keyword},'%') OR `nick_name` LIKE CONCAT('%',#{keyword},'%') OR `email` LIKE CONCAT('%',#{keyword},'%') )
+            </if>
+            <if test="vipStatus != null">
+                AND vip_status = #{vipStatus}
+            </if>
+    </select>
+
+
+</mapper>

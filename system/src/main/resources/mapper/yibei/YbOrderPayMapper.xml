@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yibei.yb.mapper.YbOrderPayMapper">
+
+    <resultMap type="com.yibei.yb.domain.YbOrderPay" id="YbOrderPayResult">
+        <result property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="orderNo" column="order_no"/>
+        <result property="payTime" column="pay_time"/>
+        <result property="payAmount" column="pay_amount"/>
+        <result property="tradeNo" column="trade_no"/>
+        <result property="responseData" column="response_data"/>
+        <result property="createTime" column="create_time"/>
+        <result property="isDeleted" column="is_deleted"/>
+    </resultMap>
+
+
+</mapper>

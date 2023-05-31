@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yibei.yb.mapper.YbQuestionBankContentMapper">
+
+    <resultMap type="com.yibei.yb.domain.YbQuestionBankContent" id="YbQuestionBankContentResult">
+        <result property="id" column="id"/>
+        <result property="questionBankId" column="question_bank_id"/>
+        <result property="parentId" column="parent_id"/>
+        <result property="title" column="title"/>
+        <result property="answer" column="answer"/>
+        <result property="imgUrl" column="img_url"/>
+        <result property="label" column="label"/>
+        <result property="importance" column="importance"/>
+        <result property="relatedLinks" column="related_links"/>
+        <result property="sort" column="sort"/>
+        <result property="status" column="status"/>
+        <result property="createTime" column="create_time"/>
+        <result property="isDeleted" column="is_deleted"/>
+    </resultMap>
+
+    <select id="getListBysort" resultType="com.yibei.yb.domain.YbQuestionBankContent">
+        SELECT
+            a.*
+        FROM
+            yb_question_bank_content a
+                LEFT JOIN yb_question_bank_content b ON a.parent_id = b.id
+                AND b.is_deleted = 0
+                AND b.STATUS = 1
+        WHERE
+            a.is_deleted = 0
+          AND a.STATUS = 1
+          AND a.question_bank_id = #{questionBankId}
+          AND a.parent_id != 0
+        ORDER BY
+            b.sort,
+            a.sort ASC
+    </select>
+
+    <select id="getCollectionList" resultType="com.yibei.yb.domain.clientVo.YbQbcCatalogueInfoVo">
+        SELECT
+            id,
+            title
+        FROM
+            yb_question_bank_content
+        WHERE
+            id IN (
+                SELECT
+                    parent_id
+                FROM
+                    yb_question_bank_content
+                WHERE
+                    is_deleted = 0
+                  AND STATUS = 1
+                  AND id IN ( SELECT entry_id FROM yb_user_collection WHERE is_deleted = 0 AND user_id = #{userId} AND content_type = 2 AND content_id = #{questionBankId} )
+                )
+        ORDER BY
+            sort ASC
+    </select>
+
+    <select id="getSecondList" resultType="com.yibei.yb.domain.clientVo.YbQbcCatalogueSecondInfoVo">
+        SELECT
+            a.id,
+            a.title,
+            a.label,
+            a.importance,
+            CASE WHEN b.type IS NULL THEN 0 ELSE b.type END type
+        FROM
+            yb_question_bank_content a
+                LEFT JOIN ( SELECT question_bank_content_id, type FROM yb_answer_log WHERE is_deleted = 0 AND user_id = #{userId} ) b ON a.id = b.question_bank_content_id
+                LEFT JOIN ( SELECT entry_id FROM yb_user_collection WHERE is_deleted = 0 AND user_id = #{userId} AND content_type = 2 ) c ON a.id = c.entry_id
+        WHERE
+            a.parent_id = #{questionBankContentId}
+          AND a.is_deleted = 0
+          AND a.STATUS = 1
+            <if test="isCollection != null and isCollection != 0">
+                AND c.entry_id IS NOT NULL
+            </if>
+          ORDER BY a.sort ASC
+    </select>
+    <select id="getSubjectInfo" resultType="com.yibei.yb.domain.clientVo.YbQuestionBankContentInfoVo">
+        select aa.*,bb.id last_id,bb.title last_title,cc.id next_id,cc.title next_title from (
+            SELECT a.*,(@row1:= @row1+1) AS row1,(@row2:= @row1-1) AS row2,(@row3:= @row1+1) AS row3 FROM (
+               select en.id,en.question_bank_id,en.title,en.answer,en.label,en.img_url,en.importance,en.related_links
+               from yb_question_bank_content en
+                        left join yb_question_bank_content ent
+                                  on en.parent_id=ent.id and ent.is_deleted=0 and ent.`status`=1
+               where en.is_deleted=0 and en.`status`=1 and en.parent_id!=0 and en.question_bank_id=#{questionBankId}
+               order by ent.sort asc,ent.create_time desc,en.sort asc,en.create_time desc
+           ) a,(SELECT @row1:=0) b
+        ) aa
+        left join
+        (
+            SELECT a.*,(@row4:= @row4+1) AS row4 FROM (
+                select en.id,en.title
+                from yb_question_bank_content en
+                         left join yb_question_bank_content ent
+                                   on en.parent_id=ent.id and ent.is_deleted=0 and ent.`status`=1
+                where en.is_deleted=0 and en.`status`=1 and en.parent_id!=0 and en.question_bank_id=#{questionBankId}
+                order by ent.sort asc,ent.create_time desc,en.sort asc,en.create_time desc
+            ) a,(SELECT @row4:=0) b
+        )bb on aa.row2=bb.row4
+        left join
+        (
+            SELECT a.*,(@row5:= @row5+1) AS row5 FROM (
+                select en.id,en.title
+                from yb_question_bank_content en
+                         left join yb_question_bank_content ent
+                                   on en.parent_id=ent.id and ent.is_deleted=0 and ent.`status`=1
+                where en.is_deleted=0 and en.`status`=1 and en.parent_id!=0 and en.question_bank_id=#{questionBankId}
+                order by ent.sort asc,ent.create_time desc,en.sort asc,en.create_time desc
+            ) a,(SELECT @row5:=0) b
+        )cc on aa.row3=cc.row5
+        where 1=1
+        <if test="selectId != null">
+            and aa.id=#{selectId}
+        </if>
+        limit 1
+    </select>
+    <select id="getAnswersNum" resultType="java.lang.Long">
+        SELECT
+            count( 1 ) counts
+        FROM
+            yb_answer_log a
+                LEFT JOIN yb_question_bank_content b ON a.question_bank_content_id = b.id
+                AND b.is_deleted = 0
+                AND b.`status` = 1
+        WHERE
+            a.is_deleted = 0
+          AND a.user_id = #{userId}
+          AND a.question_bank_id = #{questionBankId}
+            <if test="type!= null">
+                AND a.type=#{type}
+            </if>
+          AND b.id IS NOT NULL
+    </select>
+    <select id="getAnswerInfo" resultType="java.util.Map">
+        SELECT
+            CASE WHEN sum( total ) IS NOT NULL THEN sum( total ) ELSE 0 END total,
+            CASE WHEN sum( answered ) IS NOT NULL THEN sum( answered ) ELSE 0 END answered
+        FROM
+            (
+                SELECT
+                    1 total,
+                    CASE WHEN al.id IS NOT NULL THEN 1 ELSE 0 END answered
+                FROM
+                    yb_question_bank_content qbc
+                        LEFT JOIN yb_answer_log al ON qbc.question_bank_id = al.question_bank_id
+                        AND qbc.id = question_bank_content_id
+                        AND al.is_deleted = 0
+                        AND al.type = 1
+                        AND al.user_id = #{userId}
+                WHERE
+                    qbc.is_deleted = 0
+                  AND qbc.`status` = 1
+                  AND qbc.question_bank_id = #{questionBankId}
+                  AND qbc.parent_id != 0
+            )z
+    </select>
+
+</mapper>

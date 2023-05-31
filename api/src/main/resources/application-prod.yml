@@ -1,0 +1,144 @@
+# 数据源配置
+spring:
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    # 动态数据源文档 https://www.kancloud.cn/tracy5546/dynamic-datasource/content
+    dynamic:
+      # 性能分析插件(有性能损耗 不建议生产环境使用)
+      p6spy: true
+      # 设置默认的数据源或者数据源组,默认值即为 master
+      primary: master
+      datasource:
+        # 主库数据源
+        master:
+          driverClassName: com.mysql.cj.jdbc.Driver
+          url: jdbc:mysql://127.0.0.1:3306/yibei_db?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8&autoReconnect=true
+          username: root
+          password: TOnl9D#fP0NU!Ui%
+        # 从库数据源
+        slave:
+          lazy: true
+          driverClassName: com.mysql.cj.jdbc.Driver
+          url:
+          username:
+          password:
+      druid:
+        # 初始连接数
+        initialSize: 5
+        # 最小连接池数量
+        minIdle: 10
+        # 最大连接池数量
+        maxActive: 20
+        # 配置获取连接等待超时的时间
+        maxWait: 60000
+        # 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒
+        timeBetweenEvictionRunsMillis: 60000
+        # 配置一个连接在池中最小生存的时间，单位是毫秒
+        minEvictableIdleTimeMillis: 300000
+        # 配置一个连接在池中最大生存的时间，单位是毫秒
+        maxEvictableIdleTimeMillis: 900000
+        # 配置检测连接是否有效
+        validationQuery: SELECT 1
+        testWhileIdle: true
+        testOnBorrow: false
+        testOnReturn: false
+        # 注意这个值和druid原生不一致，默认启动了stat
+        filters: stat
+
+--- # druid 配置
+spring:
+  datasource:
+    druid:
+      webStatFilter:
+        enabled: true
+      statViewServlet:
+        enabled: true
+        # 设置白名单，不填则允许所有访问
+        allow:
+        url-pattern: /druid/*
+        # 控制台管理用户名和密码
+        login-username: yibei
+        login-password: bp1bvczv1mn8o1rqswpd
+      filter:
+        stat:
+          enabled: true
+          # 慢SQL记录
+          log-slow-sql: true
+          slow-sql-millis: 1000
+          merge-sql: true
+        wall:
+          config:
+            multi-statement-allow: true
+  servlet:
+    multipart:
+      # 文件上传临时路径
+      location: /home/www/temp
+
+--- # redis 配置
+spring:
+  redis:
+    # 地址
+    host: 127.0.0.1
+    # 端口，默认为6379
+    port: 6379
+    # 数据库索引
+    database: 1
+    # 密码
+    password: '9sDgPL7QpD80kCtz'
+    # 连接超时时间
+    timeout: 20s
+    # 是否开启ssl
+    ssl: false
+
+redisson:
+  # 线程池数量
+  threads: 16
+  # Netty线程池数量
+  nettyThreads: 32
+  # 传输模式
+  transportMode: "NIO"
+  # 单节点配置
+  singleServerConfig:
+    # 客户端名称
+    clientName: ${yibei.name}
+    # 最小空闲连接数
+    connectionMinimumIdleSize: 32
+    # 连接池大小
+    connectionPoolSize: 64
+    # 连接空闲超时，单位：毫秒
+    idleConnectionTimeout: 10000
+    # 命令等待超时，单位：毫秒
+    timeout: 3000
+    # 如果尝试在此限制之内发送成功，则开始启用 timeout 计时。
+    retryAttempts: 3
+    # 命令重试发送时间间隔，单位：毫秒
+    retryInterval: 1500
+    # 发布和订阅连接的最小空闲连接数
+    subscriptionConnectionMinimumIdleSize: 1
+    # 发布和订阅连接池大小
+    subscriptionConnectionPoolSize: 50
+    # 单个连接最大订阅数量
+    subscriptionsPerConnection: 5
+    # DNS监测时间间隔，单位：毫秒
+    dnsMonitoringInterval: 5000
+
+# 日志配置
+logging:
+  file.path: /home/www/yibei/logs
+
+#域名
+#webUrl: http://www.yzyw8.com
+webUrl:
+
+#微信小程序
+wxpay:
+  appId: wx696126090d6f1095
+  appSecret: d9eba33ce3caef67509e5b88c6dd0252
+  mchId: 1627943869
+  partnerKey: 50D06BF62238D1443DF33E857EB2AB6E
+  certPath: /home/www/yibei/cert/wx/apiclient_cert.p12
+  notifyUrl: https://www.iyibei.cn/api/client
+
+#高德地图
+amap:
+  key: 4a5efe476dd4c59d2d8a8af4c474464e

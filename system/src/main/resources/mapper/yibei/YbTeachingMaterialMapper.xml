@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yibei.yb.mapper.YbTeachingMaterialMapper">
+
+    <resultMap type="com.yibei.yb.domain.YbTeachingMaterial" id="YbTeachingMaterialResult">
+        <result property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="imgUrl" column="img_url"/>
+        <result property="describe" column="describe"/>
+        <result property="content" column="content"/>
+        <result property="sort" column="sort"/>
+        <result property="status" column="status"/>
+        <result property="createTime" column="create_time"/>
+        <result property="isDeleted" column="is_deleted"/>
+    </resultMap>
+    <select id="getReportReadList" resultType="com.yibei.yb.domain.clientVo.ReportStudyReadVo">
+        select
+               b.id,
+               b.title,
+               b.img_url,
+               c.counts,
+               c.is_read,
+               case when d.min is not null then d.min else 0 end min
+        from yb_user_bookshelf a
+        left join
+            yb_teaching_material b on a.content_id=b.id
+        left join
+            (select
+                    content_id,
+                    count(1) counts,
+                    sum(is_read) is_read
+                from(
+                    select
+                           entry.teaching_material_id content_id,entry.id,case when log.id is not null then 1 else 0 end is_read
+                    from yb_teaching_material_entry entry
+                    left join yb_teaching_material_log log
+                    on entry.id=log.teaching_material_entry_id and log.is_deleted=0 and user_id=#{userId} and learning_type=1
+                    where entry.is_deleted=0 and entry.`status`=1 and entry.parent_id!=0
+                )tb group by content_id
+            ) c on a.content_id=c.content_id
+        left join
+            (select content_id,sum(min) min from yb_study_time_log where is_deleted=0 and user_id=#{userId} and type=1
+             group by content_id
+            )d on a.content_id=d.content_id
+        where
+              a.is_deleted=0
+          and a.content_type=1
+          and a.user_id=#{userId}
+          and b.`status`=1
+          and b.is_deleted=0
+        order by
+             a.last_open_time desc
+    </select>
+
+    <select id="getReportReciteList" resultType="com.yibei.yb.domain.clientVo.ReportStudyReciteVo">
+        select
+               b.id,
+               b.title,
+               b.img_url,
+               c.counts,
+               c.is_recite,
+               case when d.min is not null then d.min else 0 end min
+        from
+             yb_user_bookshelf a
+        left join
+            yb_teaching_material b
+                on a.content_id=b.id
+        left join
+        (
+            select
+                   content_id,
+                   count(1) counts,
+                   sum(is_recite) is_recite
+                from(
+                    select
+                           uc.content_id,case when log.id is not null then 1 else 0 end is_recite
+                    from yb_user_collection uc
+                    left join yb_teaching_material_entry entry on uc.entry_id=entry.id
+                    left join yb_teaching_material_log log on entry.id=log.teaching_material_entry_id and log.learning_type=2 and log.user_id=#{userId}
+                    where uc.is_deleted=0 and uc.content_type=1 and uc.user_id=#{userId}
+                          and entry.is_deleted=0 and entry.`status`=1 and entry.parent_id!=0
+                )tb group by content_id
+        ) c
+            on a.content_id=c.content_id
+        left join
+             (select content_id,sum(min) min from yb_study_time_log where is_deleted=0 and user_id=#{userId} and type=2
+              group by content_id
+             )d on a.content_id=d.content_id
+        where
+              a.is_deleted=0
+          and a.content_type=1
+          and a.user_id=#{userId}
+          and b.`status`=1
+          and b.is_deleted=0
+        order by
+             a.last_open_time desc
+    </select>
+    <select id="getReportQuestionBankList" resultType="com.yibei.yb.domain.clientVo.ReportStudyQuestionBankVo">
+        select
+               b.id,b.title,
+               b.img_url,
+               c.counts,
+               c.is_done,
+               case when d.min is not null then d.min else 0 end min
+        from
+            yb_user_bookshelf a
+        left join
+            yb_question_bank b on a.content_id=b.id
+        left join
+            (
+                select
+                    content_id,count(1) counts,sum(is_done) is_done
+                from(
+                    select
+                        qbc.question_bank_id content_id,qbc.id,case when log.id is not null then 1 else 0 end is_done
+                    from
+                        yb_question_bank_content qbc
+                    left join
+                        yb_answer_log log on qbc.id=log.question_bank_content_id and log.is_deleted=0 and user_id=#{userId}
+                    where
+                        qbc.is_deleted=0 and qbc.`status`=1 and qbc.parent_id!=0
+                )tb group by content_id
+            )c on a.content_id=c.content_id
+        left join
+            (
+                select
+                    content_id,sum(min) min
+                from yb_study_time_log
+                where is_deleted=0 and user_id=#{userId} and type=3
+                group by content_id
+            )d on a.content_id=d.content_id
+        where
+            a.is_deleted=0
+            and a.content_type=2
+            and a.user_id=#{userId}
+            and b.`status`=1
+            and b.is_deleted=0
+        order by
+            a.last_open_time desc
+    </select>
+    <select id="getReportExpandReadingList"
+            resultType="com.yibei.yb.domain.clientVo.ReportStudyExpandReadingVo">
+        SELECT
+            b.id,
+            b.title,
+            b.img_url
+        FROM
+            yb_reading_log a
+                LEFT JOIN yb_expand_reading b ON a.expand_read_id = b.id
+        WHERE
+            a.is_deleted = 0
+          AND a.user_id = #{userId}
+          AND a.`status` = 3
+          AND b.is_deleted = 0
+          AND b.`status` =1
+    </select>
+    <select id="getReportStudyLogList" resultType="com.yibei.yb.domain.clientVo.ReportStudyLogInfoVo">
+        select
+               days,
+               group_concat(concat(type,"_",num) separator',') info
+        from(
+             (select '1' type,date_day days,sum(min) num from yb_study_time_log
+              where is_deleted=0 and user_id=#{userId} and type=1
+              group by date_day order by date_day desc limit #{size})
+
+             UNION ALL
+
+             (select '2' type,days,count(1) num from (
+             select left(create_time,10) days from yb_teaching_material_log
+             where is_deleted=0 and user_id=#{userId} and learning_type=2)a
+              group by days order by days desc limit #{size})
+
+             UNION ALL
+
+             (select '3' type,days,count(1) num from (
+             select left(create_time,10) days from yb_answer_log
+             where is_deleted=0 and user_id=#{userId})b
+              group by days order by days desc limit #{size})
+
+             UNION ALL
+
+             (select '4' type,days,count(1) num from (
+             select left(update_time,10) days from yb_reading_log
+             where is_deleted=0 and user_id=#{userId} and `status`=3)c
+              group by days order by days desc limit #{size})
+     )tb
+        group by days
+        order by days desc
+        limit #{size}
+    </select>
+
+
+</mapper>

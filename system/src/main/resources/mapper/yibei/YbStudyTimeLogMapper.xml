@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yibei.yb.mapper.YbStudyTimeLogMapper">
+
+    <resultMap type="com.yibei.yb.domain.YbStudyTimeLog" id="YbStudyTimeLogResult">
+        <result property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="type" column="type"/>
+        <result property="contentId" column="content_id"/>
+        <result property="min" column="min"/>
+        <result property="dateDay" column="date_day"/>
+        <result property="createTime" column="create_time"/>
+        <result property="isDeleted" column="is_deleted"/>
+    </resultMap>
+    <select id="getUserStudyMin" resultType="java.lang.Integer">
+        SELECT
+            sum( min ) min
+        FROM
+            yb_study_time_log
+        WHERE
+            is_deleted = 0
+            AND user_id = #{userId}
+            <if test="startTime != null and endTime!=null">
+                AND create_time &gt;= #{startTime}
+                AND create_time &lt; #{endTime}
+            </if>
+    </select>
+
+    <select id="getTranscendInfo" resultType="com.yibei.yb.domain.clientVo.TranscendVo">
+        select
+            count(1) counts,
+            sum(is_transcend) transcend
+        from(
+            select
+                   case when b.is_transcend is not null then b.is_transcend else 1 end is_transcend
+            from user a
+            left join
+            (
+                select
+                       user_id,sum(min) min,
+                       case when sum(min)&lt;#{userStudyMin} then 1 else 0 end is_transcend from yb_study_time_log
+                where
+                    is_deleted=0 and create_time&gt;=#{startTime} and create_time&lt;=#{endTime}
+                group by
+                    user_id
+            ) b on a.id=b.user_id
+            where
+                  a.is_deleted=0 and a.id!=#{userId}
+        )z
+    </select>
+
+
+</mapper>
