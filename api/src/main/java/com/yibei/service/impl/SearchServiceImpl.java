@@ -3,11 +3,13 @@ package com.yibei.service.impl;
 import com.yibei.common.core.domain.AjaxResult;
 import com.yibei.mapper.SearchMapper;
 import com.yibei.service.SearchService;
+import com.yibei.yb.domain.dto.MaterialItem;
 import com.yibei.yb.domain.vo.SearchResVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * 　 功能描述
@@ -42,7 +44,7 @@ public class SearchServiceImpl implements SearchService {
     public AjaxResult keywordSearch(String keyword) {
 
         SearchResVO resVO = new SearchResVO();
-
+        List<MaterialItem> materialItems = searchMapper.searMaterList(keyword);
         resVO.setMaterialList(searchMapper.searMaterList(keyword));
         resVO.setExpandingItems(searchMapper.searExpand(keyword));
         resVO.setTopicList(searchMapper.searTopic(keyword));

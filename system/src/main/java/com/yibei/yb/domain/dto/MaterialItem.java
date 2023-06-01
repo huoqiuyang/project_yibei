@@ -1,26 +1,25 @@
 package com.yibei.yb.domain.dto;
 
-/**
- * 　 功能描述
- *
- * 　 <p>
- * 　 -----------------------------------------------------------------------------
- * 　 <p>
- * 　 工程名 ： yibei
- * 　 <p>
- * 　 授权 : (C) Copyright topwalk Corporation 2014-2023
- * 　 <p>
- * 　 公司 : 托尔思天行网安信息技术有限责任公司
- * 　 <p>
- * 　 ------------------------------------------------------------------- ----------
- * 　 <p>
- * 　 <font color="#FF0000">注意: 本内容仅限于拓尔思天行网安公司内部使用，禁止转发</font>
- * 　 <p>
- *
- * 　 @version 1.0
- * 　 @author huoqy
- * 　 @createDate 2023年06月01日 20:24
- * 　 @since JDK1.8
- */
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class MaterialItem {
+
+    @ApiModelProperty("教材ID")
+    private Long materialId;
+
+    @ApiModelProperty("词条标题")
+    private String title;
+
+    @ApiModelProperty("重要度")
+    private Integer importance;
+
+    @ApiModelProperty("内容")
+    private String content;
+
+    @ApiModelProperty("教材名称")
+    private String materialName;
 }
