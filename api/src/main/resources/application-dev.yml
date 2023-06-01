@@ -12,9 +12,9 @@ spring:
         # 主库数据源
         master:
           driverClassName: com.mysql.cj.jdbc.Driver
-          url: jdbc:mysql://127.0.0.1:3306/yibei_db?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8&autoReconnect=true
-          username: yibei
-          password: 123456
+          url: jdbc:mysql://39.106.132.106:3306/yibei_test?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8&autoReconnect=true
+          username: root
+          password: TOnl9D#fP0NU!Ui%
         # 从库数据源
         slave:
           lazy: true
@@ -74,13 +74,13 @@ spring:
 spring:
   redis:
     # 地址
-    host: 10.0.0.201
+    host: 192.168.95.100
     # 端口，默认为6379
     port: 6379
     # 数据库索引
     database: 12
     # 密码
-    password: 123456
+    password: topwalk
     # 连接超时时间
     timeout: 10s
     # 是否开启ssl
