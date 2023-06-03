@@ -1,7 +1,7 @@
 package com.yibei.yb.service.impl;
 
 import com.yibei.common.core.domain.AjaxResult;
-import com.yibei.mapper.SearchMapper;
+import com.yibei.yb.mapper.SearchMapper;
 import com.yibei.yb.service.SearchService;
 import com.yibei.yb.domain.dto.ExpandingItem;
 import com.yibei.yb.domain.dto.MaterialItem;
