@@ -31,10 +31,10 @@ import javax.annotation.Resource;
  * 　 @createDate 2023年06月01日 20:14
  * 　 @since JDK1.8
  */
-@RestController("Client_ReportErrorsController")
+@RestController("Client_SearchKeywordController")
 @Api(value = "搜索模块",tags = "搜索模块")
 @RequestMapping("/client/searchModel")
-public class SearchController {
+public class SearchKeywordController {
 
 
     @Resource

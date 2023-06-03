@@ -3,12 +3,17 @@ package com.yibei.service.impl;
 import com.yibei.common.core.domain.AjaxResult;
 import com.yibei.mapper.SearchMapper;
 import com.yibei.service.SearchService;
+import com.yibei.yb.domain.dto.ExpandingItem;
 import com.yibei.yb.domain.dto.MaterialItem;
+import com.yibei.yb.domain.dto.TopicItemDTO;
 import com.yibei.yb.domain.vo.SearchResVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -44,11 +49,122 @@ public class SearchServiceImpl implements SearchService {
     public AjaxResult keywordSearch(String keyword) {
 
         SearchResVO resVO = new SearchResVO();
-        List<MaterialItem> materialItems = searchMapper.searMaterList(keyword);
-        resVO.setMaterialList(searchMapper.searMaterList(keyword));
-        resVO.setExpandingItems(searchMapper.searExpand(keyword));
-        resVO.setTopicList(searchMapper.searTopic(keyword));
+        List<MaterialItem> materialItems = getMaterial(keyword);
+        List<ExpandingItem> expandingItems = getExpanding(keyword);
+        List<TopicItemDTO> topicItems = getTopic(keyword);
+        
+        // 对查询的结果进行处理
+        
 
-        return null;
+        resVO.setMaterialList(materialItems);
+        resVO.setExpandingItems(expandingItems);
+        resVO.setTopicList(topicItems);
+
+        return AjaxResult.success(resVO);
+    }
+
+    private List<TopicItemDTO> getTopic(String keyword) {
+        List<TopicItemDTO> topicItems = searchMapper.searTopic(keyword);
+        if (topicItems.size() > 15) {
+            Iterator<TopicItemDTO> iterator = topicItems.iterator();
+            int index = 0;
+            while (iterator.hasNext()) {
+                TopicItemDTO itemDTO = iterator.next();
+                if (index % 4 == 0 || itemDTO.getTitle() == null) {
+                    iterator.remove();
+                }
+                index ++;
+            }
+        }
+        return topicItems;
+    }
+
+    private List<ExpandingItem> getExpanding(String keyword) {
+
+        List<ExpandingItem> expandingItems = searchMapper.searExpand(keyword);
+        if (expandingItems.size() == 0) {
+            return expandingItems;
+        }
+        List<ExpandingItem> titleList = new ArrayList<>();
+        List<ExpandingItem> contentList = new ArrayList<>();
+        List<ExpandingItem> bothList = new ArrayList<>();
+        String regExp1="[\n`~!@#$%^&*()+=|{}':;',\\[\\].<>/?~！@#￥%……&*（）——+|{}【】‘；\\：：”“’。， 、？]";
+        String regExp2 = "[a-zA-Z]";
+        String replace = "";
+        for (ExpandingItem item : expandingItems) {
+            if (item.getContent() == null) {
+                titleList.add(item);
+                continue;
+            }
+            String content = item.getContent();
+            content = content.replaceAll(regExp1, replace);
+            content = content.replaceAll(regExp2, replace);
+            item.setContent(content);
+
+            if (!StringUtils.hasLength(content)) {
+                if (item.getTitle().contains(keyword)) {
+                    titleList.add(item);
+                    continue;
+                }
+            }
+
+            if (item.getTitle().contains(keyword) && item.getContent().contains(keyword)) {
+                bothList.add(item);
+                continue;
+            }
+            contentList.add(item);
+        }
+
+        expandingItems.clear();
+        expandingItems.addAll(bothList);
+        expandingItems.addAll(titleList);
+        expandingItems.addAll(contentList);
+
+        return expandingItems;
+    }
+
+    private List<MaterialItem> getMaterial(String keyword) {
+
+        List<MaterialItem> materialItems = searchMapper.searMaterList(keyword);
+        if (materialItems.size() == 0) {
+            return materialItems;
+        }
+        List<MaterialItem> titleList = new ArrayList<>();
+        List<MaterialItem> contentList = new ArrayList<>();
+        List<MaterialItem> bothList = new ArrayList<>();
+        String regExp1="[\n`~!@#$%^&*()+=|{}':;',\\[\\].<>/?~！@#￥%……&*（）——+|{}【】‘；：”“’。， 、？]";
+        String regExp2 = "[a-zA-Z]";
+        String replace = "";
+        for (MaterialItem item : materialItems) {
+            if (item.getContent() == null) {
+                titleList.add(item);
+                continue;
+            }
+            String content = item.getContent();
+            content = content.replaceAll(regExp1, replace);
+            content = content.replaceAll(regExp2, replace);
+            item.setContent(content);
+
+            if (!StringUtils.hasLength(content)) {
+                if (item.getTitle().contains(keyword)) {
+                    titleList.add(item);
+                    continue;
+                }
+            }
+
+            if (item.getTitle().contains(keyword) && item.getContent().contains(keyword)) {
+                bothList.add(item);
+                continue;
+            }
+            contentList.add(item);
+        }
+
+        materialItems.clear();
+        materialItems.addAll(bothList);
+        materialItems.addAll(titleList);
+        materialItems.addAll(contentList);
+
+        return materialItems;
+
     }
 }

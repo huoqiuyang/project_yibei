@@ -1,5 +1,6 @@
 package com.yibei.yb.domain.dto;
 
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -28,4 +29,16 @@ import lombok.Setter;
 @Getter
 @Setter
 public class TopicItemDTO {
+
+    @ApiModelProperty("题库的id")
+    private Long questionBankId;
+
+    @ApiModelProperty("题库的名字")
+    private String questionBankName;
+
+    @ApiModelProperty("题目标题")
+    private String title;
+
+    @ApiModelProperty("题库标签")
+    private String label;
 }

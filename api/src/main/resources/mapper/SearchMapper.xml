@@ -8,13 +8,33 @@
         SELECT e.teaching_material_id AS materialId,
                e.title AS title,
                e.importance,
-               SUBSTRING(e.content, LOCATE(#{keyword}, e.content) - 15, 40) AS content,
+               SUBSTRING(e.content, LOCATE(#{keyword}, e.content) - 15, 50) AS content,
                m.title AS materialName
         FROM yb_teaching_material_entry e LEFT JOIN yb_teaching_material m  ON e.teaching_material_id = m.id
-        WHERE e.content LIKE CONCAT('%' #{keyword}, '%')
-        LIMIT 15
+        WHERE ((e.content LIKE CONCAT('%', #{keyword}, '%')) OR (e.title LIKE CONCAT('%', #{keyword}, '%')))
+        AND e.is_deleted = 0
+        LIMIT 50
 
     </select>
-    <select id="searExpand" resultType="com.yibei.yb.domain.dto.ExpandingItem"></select>
-    <select id="searTopic" resultType="com.yibei.yb.domain.dto.TopicItemDTO"></select>
+
+    <select id="searExpand" resultType="com.yibei.yb.domain.dto.ExpandingItem">
+        SELECT  id AS extendId,
+                title,
+                label,
+                SUBSTRING(content, LOCATE(#{keyword}, content) - 15, 40) AS content
+        FROM yb_expand_reading
+        WHERE (title LIKE CONCAT('%', #{keyword}, '%') OR content LIKE CONCAT('%', #{keyword}, '%')) AND is_deleted = 0
+        LIMIT 15
+    </select>
+
+    <select id="searTopic" resultType="com.yibei.yb.domain.dto.TopicItemDTO">
+
+        SELECT c.title AS title, c.label, b.title AS questionBankName, b.id AS questionBankId
+        FROM yb_question_bank_content c LEFT JOIN yb_question_bank b
+        ON c.question_bank_id = b.id
+        WHERE c.title LIKE CONCAT('%', #{keyword}, '%')
+        AND CHAR_LENGTH(c.title) &lt;=  30
+        AND c.is_deleted = 0
+
+    </select>
 </mapper>

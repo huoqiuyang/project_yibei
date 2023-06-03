@@ -1,5 +1,6 @@
 package com.yibei.yb.domain.dto;
 
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -28,4 +29,16 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ExpandingItem {
+
+    @ApiModelProperty("扩展阅读Id")
+    private Long extendId;
+
+    @ApiModelProperty("扩展阅读标题")
+    private String title;
+
+    @ApiModelProperty("扩展阅读标签")
+    private String label;
+
+    @ApiModelProperty("扩展阅读内容")
+    private String content;
 }
