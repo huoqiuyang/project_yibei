@@ -6,6 +6,7 @@ import lombok.Data;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 @Data
 public class YbUserCollectionAddBo {
@@ -18,6 +19,10 @@ public class YbUserCollectionAddBo {
 
     @ApiModelProperty("id")
     @NotNull
+    private Long[] ids;
+
     private Long id;
+
+
 
 }

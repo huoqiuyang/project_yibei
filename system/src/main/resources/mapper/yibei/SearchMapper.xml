@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.yibei.mapper.SearchMapper">
+<mapper namespace="com.yibei.yb.mapper.SearchMapper">
 
 
     <select id="searMaterList" resultType="com.yibei.yb.domain.dto.MaterialItem">
@@ -13,7 +13,7 @@
         FROM yb_teaching_material_entry e LEFT JOIN yb_teaching_material m  ON e.teaching_material_id = m.id
         WHERE ((e.content LIKE CONCAT('%', #{keyword}, '%')) OR (e.title LIKE CONCAT('%', #{keyword}, '%')))
         AND e.is_deleted = 0
-        LIMIT 50
+        LIMIT 80
 
     </select>
 
@@ -21,10 +21,10 @@
         SELECT  id AS extendId,
                 title,
                 label,
-                SUBSTRING(content, LOCATE(#{keyword}, content) - 15, 40) AS content
+                SUBSTRING(content, LOCATE(#{keyword}, content) - 15, 50) AS content
         FROM yb_expand_reading
         WHERE (title LIKE CONCAT('%', #{keyword}, '%') OR content LIKE CONCAT('%', #{keyword}, '%')) AND is_deleted = 0
-        LIMIT 15
+        LIMIT 50
     </select>
 
     <select id="searTopic" resultType="com.yibei.yb.domain.dto.TopicItemDTO">

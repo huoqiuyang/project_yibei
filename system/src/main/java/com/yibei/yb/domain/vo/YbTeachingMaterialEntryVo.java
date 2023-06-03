@@ -89,6 +89,20 @@ public class YbTeachingMaterialEntryVo extends BaseVo {
 	private String relatedLinks;
 
 	/**
+	 * 拓展信息
+	 */
+	@ExcelProperty(value = "拓展信息")
+	@ApiModelProperty(value = "拓展信息")
+	private String extendingInfo;
+
+	/**
+	 * 答题点播
+	 */
+	@ExcelProperty(value = "答题点播")
+	@ApiModelProperty(value = "答题点播")
+	private String answerTip;
+
+	/**
 	 * 内容
 	 */
 	@ExcelProperty(value = "内容")

@@ -1,4 +1,4 @@
-package com.yibei.mapper;
+package com.yibei.yb.mapper;
 
 import com.yibei.yb.domain.dto.ExpandingItem;
 import com.yibei.yb.domain.dto.MaterialItem;

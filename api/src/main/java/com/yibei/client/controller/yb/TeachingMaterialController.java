@@ -2,7 +2,6 @@ package com.yibei.client.controller.yb;
 
 import cn.hutool.core.bean.copier.CopyOptions;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.yibei.client.controller.BaseController;
 import com.yibei.common.core.domain.AjaxResult;
@@ -12,6 +11,7 @@ import com.yibei.common.utils.CalculationUtils;
 import com.yibei.common.utils.PageUtils;
 import com.yibei.common.utils.TimeUtils;
 import com.yibei.framework.sso.LoginChecked;
+import com.yibei.yb.mapper.EntryMapper;
 import com.yibei.system.domain.SysConfig;
 import com.yibei.system.domain.clientBo.IdBo;
 import com.yibei.system.domain.clientBo.PageBo;
@@ -30,10 +30,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import javax.annotation.Resource;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController("Client_TeachingMaterialController")
@@ -59,6 +57,9 @@ public class TeachingMaterialController extends BaseController {
     private final IYbTeachingMaterialLogService iYbTeachingMaterialLogService;
 
     private final IYbContentLinkService iYbContentLinkService;
+
+    @Resource
+    private EntryMapper entryMapper;
 
     @ApiOperation("教材列表")
     @PostMapping("/list")
@@ -649,52 +650,47 @@ public class TeachingMaterialController extends BaseController {
     @LoginChecked
     public AjaxResult joinRecitation(@RequestBody YbUserCollectionAddBo bo) {
 
-        YbTeachingMaterialEntry teachingMaterialEntry = iYbTeachingMaterialEntryService.getById(bo.getId());
-        if(teachingMaterialEntry == null){
-            return AjaxResult.error("词条不存在");
+        List<Long> oriList = new ArrayList<>(Arrays.asList(bo.getIds()));
+        // 校验词条是否存在
+        List<YbTeachingMaterialEntry> ids = entryMapper.searchIdByIds(oriList);
+        if (ids.size() != bo.getIds().length) {
+            return AjaxResult.error("所选的词条中有不存在的词条");
         }
-
-        YbUserCollection ybUserCollection = iYbUserCollectionService.getOne(new LambdaQueryWrapper<YbUserCollection>()
-                .eq(YbUserCollection::getUserId,getUserId())
-                .eq(YbUserCollection::getContentType,1)
-                .eq(YbUserCollection::getEntryId,teachingMaterialEntry.getId())
-                .last("LIMIT 1"));
-
-        int operationType = bo.getOperationType();//操作类型 1加入背诵2,移出背诵
+        Long userId = getUserId();
+        // 教材题库类型
+        Integer contentType = 1;
+        //操作类型 1加入背诵2,移出背诵
+        int operationType = bo.getOperationType();
+        // 查出已经加入背诵的词条
+        List<Long> alreadyAddList = entryMapper.getAddListByUserId(userId, contentType);
         switch (operationType){
             case 1:
                 //加入背诵
-                if(ybUserCollection!=null){
-                    return AjaxResult.error("请勿重复加入背诵");
+                // 过滤掉已经加入的背诵的
+                List<Long> preAddList = oriList.stream().filter(e -> !alreadyAddList.contains(e)).collect(Collectors.toList());
+                if (preAddList.size() == 0) {
+                    return AjaxResult.error("所选的词条已加入背诵");
                 }
-
-                YbUserCollection userCollection = new YbUserCollection();
-                userCollection.setUserId(getUserId());
-                userCollection.setEntryId(teachingMaterialEntry.getId());
-                userCollection.setContentId(teachingMaterialEntry.getTeachingMaterialId());
-                userCollection.setContentType(1l);
-
-                if(!iYbUserCollectionService.save(userCollection)){
+                // 保存背诵词条
+                if(entryMapper.saveRecite(preAddList, ids.get(0).getTeachingMaterialId(), userId) == 0){
                     return AjaxResult.error("加入背诵失败");
                 }
                 return AjaxResult.success("加入背诵成功");
             case 2:
                 //移出背诵
-                if(ybUserCollection == null){
-                    return AjaxResult.error("还未加入背诵");
+                List<Long> readyToMoveList = oriList.stream().filter(alreadyAddList :: contains).collect(Collectors.toList());
+                if (readyToMoveList.size() == 0) {
+                    return AjaxResult.error("所选词条尚未加入背诵");
                 }
-
-                UpdateWrapper uw = new UpdateWrapper();
-                uw.eq("id",ybUserCollection.getId());
-                uw.setSql("is_deleted=1");
-
-                if(!iYbUserCollectionService.update(uw)){
+                // 更新
+                if(entryMapper.remove(readyToMoveList) == 0){
                     return AjaxResult.error("移出背诵失败");
                 }
                 return AjaxResult.success("移出背诵成功");
             default:
                 return AjaxResult.error("操作错误");
         }
+
     }
 
     @ApiOperation("教材每天学习信息获取")

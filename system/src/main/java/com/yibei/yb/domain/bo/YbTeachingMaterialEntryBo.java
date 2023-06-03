@@ -75,6 +75,18 @@ public class YbTeachingMaterialEntryBo extends TreeEntity {
     private String relatedLinks;
 
     /**
+     * 拓展信息
+     */
+    @ApiModelProperty(value = "拓展信息")
+    private String extendingInfo;
+
+    /**
+     * 答题点播
+     */
+    @ApiModelProperty(value = "答题点播")
+    private String answerTip;
+
+    /**
      * 内容
      */
     @ApiModelProperty(value = "内容")

@@ -1,6 +1,7 @@
 package com.yibei.yb.domain;
 
 import com.baomidou.mybatisplus.annotation.*;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
@@ -77,6 +78,18 @@ public class YbTeachingMaterialEntry implements Serializable {
      */
     @TableField(value = "`related_links`")
     private String relatedLinks;
+
+    /**
+     * 拓展信息
+     */
+    @ApiModelProperty(value = "拓展信息")
+    private String extendingInfo;
+
+    /**
+     * 答题点播
+     */
+    @ApiModelProperty(value = "答题点播")
+    private String answerTip;
 
     /**
      * 内容

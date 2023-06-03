@@ -1,4 +1,4 @@
-package com.yibei.service;
+package com.yibei.yb.service;
 
 import com.yibei.common.core.domain.AjaxResult;
 

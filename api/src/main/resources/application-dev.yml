@@ -74,13 +74,13 @@ spring:
 spring:
   redis:
     # 地址
-    host: 192.168.95.100
+    host: 39.106.132.106
     # 端口，默认为6379
     port: 6379
     # 数据库索引
     database: 12
     # 密码
-    password: topwalk
+    password: '9sDgPL7QpD80kCtz'
     # 连接超时时间
     timeout: 10s
     # 是否开启ssl

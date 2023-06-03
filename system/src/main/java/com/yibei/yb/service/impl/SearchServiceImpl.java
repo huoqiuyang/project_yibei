@@ -1,8 +1,8 @@
-package com.yibei.service.impl;
+package com.yibei.yb.service.impl;
 
 import com.yibei.common.core.domain.AjaxResult;
 import com.yibei.mapper.SearchMapper;
-import com.yibei.service.SearchService;
+import com.yibei.yb.service.SearchService;
 import com.yibei.yb.domain.dto.ExpandingItem;
 import com.yibei.yb.domain.dto.MaterialItem;
 import com.yibei.yb.domain.dto.TopicItemDTO;
@@ -88,8 +88,7 @@ public class SearchServiceImpl implements SearchService {
         List<ExpandingItem> titleList = new ArrayList<>();
         List<ExpandingItem> contentList = new ArrayList<>();
         List<ExpandingItem> bothList = new ArrayList<>();
-        String regExp1="[\n`~!@#$%^&*()+=|{}':;',\\[\\].<>/?~！@#￥%……&*（）——+|{}【】‘；\\：：”“’。， 、？]";
-        String regExp2 = "[a-zA-Z]";
+        String regExp1="[\n`~!@#$%^&*()+=|{}':;',\\[\\].<>/?~！@#￥%……&*（）——+|{}【】‘；：”“’。a-zA-Z0-9////]";
         String replace = "";
         for (ExpandingItem item : expandingItems) {
             if (item.getContent() == null) {
@@ -98,7 +97,7 @@ public class SearchServiceImpl implements SearchService {
             }
             String content = item.getContent();
             content = content.replaceAll(regExp1, replace);
-            content = content.replaceAll(regExp2, replace);
+            if (content.length() < 10) { continue;}
             item.setContent(content);
 
             if (!StringUtils.hasLength(content)) {
@@ -132,8 +131,7 @@ public class SearchServiceImpl implements SearchService {
         List<MaterialItem> titleList = new ArrayList<>();
         List<MaterialItem> contentList = new ArrayList<>();
         List<MaterialItem> bothList = new ArrayList<>();
-        String regExp1="[\n`~!@#$%^&*()+=|{}':;',\\[\\].<>/?~！@#￥%……&*（）——+|{}【】‘；：”“’。， 、？]";
-        String regExp2 = "[a-zA-Z]";
+        String regExp1="[\n`~!@#$%^&*()+=|{}':;',\\[\\].<>/?~！@#￥%……&*（）——+|{}【】‘；：”“’。 ？\"a-zA-Z\\\\0-9]";
         String replace = "";
         for (MaterialItem item : materialItems) {
             if (item.getContent() == null) {
@@ -142,7 +140,7 @@ public class SearchServiceImpl implements SearchService {
             }
             String content = item.getContent();
             content = content.replaceAll(regExp1, replace);
-            content = content.replaceAll(regExp2, replace);
+            if (content.length() < 10) { continue; }
             item.setContent(content);
 
             if (!StringUtils.hasLength(content)) {

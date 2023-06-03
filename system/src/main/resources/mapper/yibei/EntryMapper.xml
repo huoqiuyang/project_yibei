@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yibei.yb.mapper.EntryMapper">
+
+    <insert id="saveRecite">
+
+        INSERT INTO yb_user_collection(content_type, content_id, entry_id, user_id)
+        VALUES
+        <foreach collection ="preAddList" item="entryId" separator =",">
+            (1, #{teachingMaterialId}, #{entryId}, #{userId})
+        </foreach>
+
+    </insert>
+    <update id="remove">
+        UPDATE yb_user_collection
+        SET is_deleted = 1
+        WHERE entry_id IN
+        <foreach collection="readyToMoveList" open="(" close=")" index="index" item="id" separator=",">
+            #{id}
+        </foreach>
+    </update>
+
+    <select id="searchIdByIds" resultType="com.yibei.yb.domain.YbTeachingMaterialEntry">
+        SELECT id, teaching_material_id FROM yb_teaching_material_entry
+        WHERE id IN
+        <foreach collection="ids" open="(" close=")" index="index" item="id" separator=",">
+            #{id}
+        </foreach>
+    </select>
+</mapper>

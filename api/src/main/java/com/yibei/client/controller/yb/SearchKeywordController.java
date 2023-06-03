@@ -1,8 +1,10 @@
 package com.yibei.client.controller.yb;
 
 import com.yibei.common.core.domain.AjaxResult;
-import com.yibei.service.SearchService;
+import com.yibei.framework.sso.LoginChecked;
+import com.yibei.yb.service.SearchService;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -48,6 +50,8 @@ public class SearchKeywordController {
      * @return com.yibei.common.core.domain.AjaxResult
      */
     @GetMapping("/keywordSearch")
+    @ApiOperation("内容搜索")
+    @LoginChecked
     public AjaxResult search(String keyword){
         return searchService.keywordSearch(keyword);
     }
