@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yibei.yb.mapper.ListenBookMapper">
+
+    <insert id="savePlayList">
+        INSERT INTO yb_play_list(user_id, material_id, entry_id, entry_name, audio, order)
+        VALUES
+        <foreach collection="entryList" separator="," item="item" >
+            (#{userId}, #{materialId}, #{item.id}, #{item.title}, #{item.audio}, #{item.order})
+        </foreach>
+    </insert>
+
+
+    <select id="bookList" resultType="com.yibei.yb.domain.vo.ListenBookItemVO">
+
+        SELECT m.id AS materialId,
+               m.title AS materialName,
+               m.img_url AS imgUrl,
+               s.entry_id AS entryId,
+               s.entry_name AS entryName,
+               s.proportion,
+               s.last_location AS lastLocation
+
+        FROM yb_teaching_material m
+        LEFT JOIN
+        (SELECT material_id, entry_id, entry_name, proportion, last_location FROM yb_listening_book_speed WHERE user_id = #{userId}) AS s
+        ON m.id = s.material_id
+        WHERE m.is_deleted = 0
+    </select>
+
+    <select id="searchSecondList" resultType="com.yibei.yb.domain.clientVo.YbTmeCatalogueSecondInfoVo">
+        SELECT e.id,
+               e.title,
+               e.label,
+               e.importance,
+               CASE WHEN p.entry_id IS NOT NULL THEN 1 ELSE 0 END type
+        FROM yb_teaching_material_entry e
+        LEFT JOIN
+           (SELECT entry_id FROM yb_play_list WHERE user_id = #{userId} AND is_deleted = 0) AS p
+        ON e.id = p.entry_id
+        WHERE e.is_deleted = 0
+        AND e.parent_id = #{firstId}
+        AND e.audio_frequency IS NOT NULL
+
+    </select>
+</mapper>
