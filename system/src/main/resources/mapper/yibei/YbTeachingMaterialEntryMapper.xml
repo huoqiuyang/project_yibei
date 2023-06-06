@@ -89,7 +89,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <select id="getEntryReadInfo" resultType="com.yibei.yb.domain.clientVo.YbTeachingMaterialEntryReadInfoVo">
         select aa.*,bb.id last_id,bb.title last_title,cc.id next_id,cc.title next_title from (
              SELECT a.*,(@row1:= @row1+1) AS row1,(@row2:= @row1-1) AS row2,(@row3:= @row1+1) AS row3 FROM (
-               select en.id,en.teaching_material_id,en.title,en.label,en.img_url,en.importance,en.audio_frequency,en.content,en.key_word,en.related_links
+               select en.id,en.teaching_material_id,en.title,en.label,en.img_url,en.importance,en.audio_frequency,en.content,en.key_word,en.related_links, en.extending_info,en.answer_tip
                from yb_teaching_material_entry en
                         left join yb_teaching_material_entry ent
                                   on en.parent_id=ent.id and ent.is_deleted=0 and ent.`status`=1

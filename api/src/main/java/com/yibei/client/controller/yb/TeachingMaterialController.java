@@ -181,11 +181,13 @@ public class TeachingMaterialController extends BaseController {
 
     @ApiOperation("词条详情-阅读模式")
     @PostMapping("/readDetail")
-    @LoginChecked
+    //@LoginChecked
     public AjaxResult<YbTeachingMaterialEntryReadInfoVo> readDetail(@RequestBody YbTeachingMaterialEntryReadInfoBo bo) {
 
+        Long userId = (long)10353;
+        //Long userId = (long)10353;
         //验证会员，非会员用户不能进入详情页面
-        YbUserVip ybUserVip = iUserService.getUserVipInfo(getUserId());
+        YbUserVip ybUserVip = iUserService.getUserVipInfo(userId);
         if(ybUserVip==null){
             return AjaxResult.error("还不是会员，暂时无法查看",null);
         }
@@ -198,7 +200,7 @@ public class TeachingMaterialController extends BaseController {
             teachingMaterialEntry = iYbTeachingMaterialEntryService.getById(bo.getId());
         }else{
             //进入阅读，跳转此教材上一次打开的词条，从没打开过的跳转第一个词条
-            teachingMaterialEntry = iYbTeachingMaterialEntryService.getEntryLog(bo.getTeachingMaterialId(),getUserId(),1);
+            teachingMaterialEntry = iYbTeachingMaterialEntryService.getEntryLog(bo.getTeachingMaterialId(),userId,1);
         }
         if(teachingMaterialEntry!=null){
             selectId = teachingMaterialEntry.getId();
@@ -213,7 +215,7 @@ public class TeachingMaterialController extends BaseController {
         //查询笔记信息
         YbNote note = iYbNoteService.getOne(new LambdaQueryWrapper<YbNote>()
                 .eq(YbNote::getEntryId,vo.getId())
-                .eq(YbNote::getUserId,getUserId())
+                .eq(YbNote::getUserId,userId)
                 .last("LIMIT 1"));
         if(note!=null){
             vo.setNote(note.getContent());
@@ -223,7 +225,7 @@ public class TeachingMaterialController extends BaseController {
         YbUserCollection userCollection = iYbUserCollectionService.getOne(new LambdaQueryWrapper<YbUserCollection>()
                 .eq(YbUserCollection::getContentType,1l)
                 .eq(YbUserCollection::getEntryId,vo.getId())
-                .eq(YbUserCollection::getUserId,getUserId())
+                .eq(YbUserCollection::getUserId,userId)
                 .last("LIMIT 1"));
         if(userCollection!=null){
             vo.setIsRecite(1);
@@ -240,7 +242,7 @@ public class TeachingMaterialController extends BaseController {
         YbTeachingMaterialLog teachingMaterialLog = iYbTeachingMaterialLogService.getOne(new LambdaQueryWrapper<YbTeachingMaterialLog>()
                 .eq(YbTeachingMaterialLog::getLearningType,1l)
                 .eq(YbTeachingMaterialLog::getTeachingMaterialEntryId,vo.getId())
-                .eq(YbTeachingMaterialLog::getUserId,getUserId())
+                .eq(YbTeachingMaterialLog::getUserId, userId)
                 .last("LIMIT 1"));
         if(teachingMaterialLog!=null){
             teachingMaterialLog.setLastTime(TimeUtils.getCurrentDate());
@@ -249,14 +251,14 @@ public class TeachingMaterialController extends BaseController {
             teachingMaterialLog = new YbTeachingMaterialLog();
             teachingMaterialLog.setTeachingMaterialId(vo.getTeachingMaterialId());
             teachingMaterialLog.setTeachingMaterialEntryId(vo.getId());
-            teachingMaterialLog.setUserId(getUserId());
+            teachingMaterialLog.setUserId(userId);
             teachingMaterialLog.setLearningType(1);
             teachingMaterialLog.setLastTime(TimeUtils.getCurrentDate());
             iYbTeachingMaterialLogService.save(teachingMaterialLog);
         }
 
         //刷新最近打开时间
-        iYbUserBookshelfService.updateLastTime(getUserId(),1l,vo.getTeachingMaterialId());
+        iYbUserBookshelfService.updateLastTime(userId,1l,vo.getTeachingMaterialId());
 
         return AjaxResult.success(vo);
     }

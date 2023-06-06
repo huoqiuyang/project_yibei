@@ -1,5 +1,6 @@
 package com.yibei.yb.domain.clientVo;
 
+import com.alibaba.excel.annotation.ExcelProperty;
 import com.yibei.yb.domain.vo.YbContentLinkVo;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -39,7 +40,17 @@ public class YbTeachingMaterialEntryReadInfoVo {
     @ApiModelProperty("关键词")
     private String keyWord;
 
+    /**
+     * 拓展信息
+     */
+    @ApiModelProperty(value = "拓展信息")
+    private String extendingInfo;
 
+    /**
+     * 答题点播
+     */
+    @ApiModelProperty(value = "答题点播")
+    private String answerTip;
 
     @ApiModelProperty("相关链接")
     private List<YbContentLinkVo> ybContentLinkVoList;
